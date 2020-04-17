@@ -3,6 +3,7 @@ import face_recognition
 import cv2
 
 from flask import Flask, request, abort, jsonify, send_from_directory
+from flask_cors import CORS
 
 UPLOAD_DIRECTORY = "/opt/altere_bruder/backend/files/"
 
@@ -10,7 +11,7 @@ if not os.path.exists(UPLOAD_DIRECTORY):
     os.makedirs(UPLOAD_DIRECTORY)
 
 api = Flask(__name__)
-
+CORS(api)
 
 @api.route('/hello')
 def hello_world():
@@ -42,25 +43,18 @@ def post_file(filename):
     print('HELLO FILE UL')
     """Upload a file."""
 
-    if "/" in filename:
-        # Return 400 BAD REQUEST
-        abort(400, "no subdirectories directories allowed")
-
-    with open(os.path.join(UPLOAD_DIRECTORY, filename), "wb") as fp:
-        fp.write(request.data)
-
     # Return 201 CREATED
     return "", 201
 
 
-@api.route("/apply", methods=["GET"])
+@api.route("/apply", methods=["POST"])
 def post_apply():
     input_movie = cv2.VideoCapture(os.path.join(UPLOAD_DIRECTORY, "video.mp4"))
     length = int(input_movie.get(cv2.CAP_PROP_FRAME_COUNT))
 
     # Create an output movie file (make sure resolution/frame rate matches input video!)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    output_movie = cv2.VideoWriter(os.path.join(UPLOAD_DIRECTORY, "output.api"), fourcc, 29.97, (640, 360))
+    output_movie = cv2.VideoWriter(os.path.join(UPLOAD_DIRECTORY, "output.avi"), fourcc, 29.97, (640, 360))
 
     # Load some sample pictures and learn how to recognize them.
     image = face_recognition.load_image_file(os.path.join(UPLOAD_DIRECTORY, "face.jpg"))
@@ -102,9 +96,7 @@ def post_apply():
             # but I kept it simple for the demo
             name = None
             if match[0]:
-                name = "Lin-Manuel Miranda"
-            elif match[1]:
-                name = "Alex Lacamoire"
+                name = "Matched Face"
 
             face_names.append(name)
 
@@ -132,4 +124,4 @@ def post_apply():
 
 
 print('HELLO ENTRY')
-api.run(debug=False, port=8080)
+api.run(host='0.0.0.0', debug=False, port=8080)

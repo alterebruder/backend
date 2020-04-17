@@ -1,10 +1,7 @@
-FROM ubuntu:latest as builder_base
-RUN apt update
-RUN apt -y upgrade
-RUN apt -y install apt-utils
-RUN apt -y install make && apt -y install gcc && apt -y install g++ && apt -y install cmake
-RUN apt -y install python3-dev && apt -y install python3-pip
-RUN apt -y install libsm6 && apt -y install libxext6 && apt -y install libxrender-dev
+FROM centos:latest as builder_base
+RUN yum -y update
+RUN yum -y install make && yum -y install gcc && yum -y install gcc-c++ && yum -y install cmake && yum -y install python3-devel
+RUN yum -y install libSM && yum -y install libXext && yum -y install libXrender-devel
 
 FROM builder_base as builder
 COPY requirements.txt/ /opt/altere_bruder/backend/requirements.txt
@@ -16,4 +13,5 @@ FROM builder
 EXPOSE 8080
 COPY server.py/ /opt/altere_bruder/backend/server.py
 WORKDIR /opt/altere_bruder/backend/
+COPY files/ files/
 CMD python3 ./server.py
